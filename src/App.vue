@@ -1,30 +1,28 @@
-
 <script setup>
+import { ref, onMounted } from 'vue'
 import HabitList from './components/HabitList.vue'
 
-const habits = [
-  {
-    id: 1,
-    name: 'Sport machen',
-    description: '3-mal pro Woche trainieren',
-    targetPerWeek: 3,
-    active: true
-  },
-  {
-    id: 2,
-    name: 'Englisch lernen',
-    description: 'Jeden Tag 30 Minuten lernen',
-    targetPerWeek: 7,
-    active: true
-  },
-  {
-    id: 3,
-    name: 'Lesen',
-    description: '20 Seiten pro Tag lesen',
-    targetPerWeek: 7,
-    active: true
+const habits = ref([])
+const loading = ref(true)
+const error = ref('')
+
+onMounted(async () => {
+  try {
+    const response = await fetch(
+      'https://habithero-backend-gbkh.onrender.com/api/habits'
+    )
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    habits.value = await response.json()
+  } catch {
+    error.value = 'Die Habits konnten nicht geladen werden.'
+  } finally {
+    loading.value = false
   }
-]
+})
 </script>
 
 <template>
@@ -32,10 +30,11 @@ const habits = [
     <h1>HabitHero</h1>
     <p>Build better habits!</p>
 
-    <HabitList :habits="habits" />
+    <p v-if="loading">Habits werden geladen …</p>
+    <p v-else-if="error" role="alert">{{ error }}</p>
+    <HabitList v-else :habits="habits" />
   </main>
 </template>
-
 
 <style scoped>
 main {
@@ -56,4 +55,3 @@ main > p {
   text-align: center;
 }
 </style>
-
